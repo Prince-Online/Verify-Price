@@ -1,0 +1,38 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" type="text/css" href="style.css">
+<form id="addProductForm">
+	<h2>Enter Product Details:</h2>
+	<hr>
+	<input type="text" id="productName" placeholder="Product Name" required><br>
+	<input type="number" id="price" placeholder="Price" required><br>
+	<input type="number" id="sellingPrice" placeholder="Selling Price" required><br>
+	<button type="submit">Submit</button>
+</form>
+<hr>
+<input type="text" id="searchProduct" placeholder="Search Product"><br>
+<button onclick="searchProduct()">Search</button>
+<hr>
+<table id="resultTable" style="display: none;">
+	<thead>
+		<tr>
+			<th>Product Name</th>
+			<th>Price</th>
+			<th>Selling Price</th>
+			<th>Action</th>
+		</tr>
+	</thead>
+	<tbody id="resultBody"></tbody>
+</table>
+<div id="editForm">
+	<h2>Edit Product</h2>
+	<form id="updateProductForm">
+		<input type="hidden" id="editRowIndex">
+		<input type="text" id="editProductName" required><br>
+		<input type="number" id="editPrice" required><br>
+		<input type="number" id="editSellingPrice" required><br>
+		<button type="submit" class="btn">Update</button>
+		<button type="button" onclick="cancelEdit()" class="btn">Cancel</button>
+	</form>
+</div>
+<script src="script.js"></script>
