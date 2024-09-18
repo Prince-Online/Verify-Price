@@ -5,80 +5,114 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <base target="_top">
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        body, html {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            background-color: #f5f5f5;
         }
         #container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
             width: 100%;
-            max-width: 800px;
+            background-color: #ffffff;
+        }
+        .table-container {
+            flex: 1;
+            overflow: auto;
         }
         table {
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0;
             width: 100%;
+            background-color: #ffffff;
         }
         th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
+            padding: 12px 15px;
             text-align: left;
+            border-bottom: 1px solid #e0e0e0;
         }
         th {
-            background-color: #f2f2f2;
+            position: sticky;
+            top: 0;
+            background-color: #f8f8f8;
+            font-weight: 600;
+            color: #333;
+            text-transform: uppercase;
+            font-size: 0.85em;
+            letter-spacing: 0.5px;
             cursor: pointer;
+            transition: background-color 0.3s ease;
+            z-index: 10;
         }
-        .loader {
+        th:hover {
+            background-color: #eaeaea;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+        .loader-container {
             display: flex;
             justify-content: center;
             align-items: center;
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            z-index: 1000;
+        }
+        .loader {
+            display: inline-block;
+            width: 50px;
             height: 50px;
-            margin-bottom: 20px;
-        }
-        .dot {
-            width: 10px;
-            height: 10px;
-            background-color: #3498db;
+            border: 3px solid rgba(0, 0, 0, 0.3);
             border-radius: 50%;
-            margin: 0 5px;
-            animation: bounce 1.4s infinite ease-in-out both;
+            border-top-color: #3498db;
+            animation: spin 1s ease-in-out infinite;
         }
-        .dot:nth-child(1) { animation-delay: -0.32s; }
-        .dot:nth-child(2) { animation-delay: -0.16s; }
-        @keyframes bounce {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1); }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
         @media (max-width: 600px) {
             table {
                 font-size: 14px;
             }
             th, td {
-                padding: 6px;
+                padding: 8px 10px;
             }
         }
     </style>
 </head>
 <body>
     <div id="container">
-        <div id="loader" class="loader">
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
+        <div id="loader-container" class="loader-container">
+            <div class="loader"></div>
         </div>
-        <table id="dataTable" style="display: none;">
-            <tr>
-                <th onclick="sortTable(0)">Product Name</th>
-                <th onclick="sortTable(1)">Product Price</th>
-                <th onclick="sortTable(2)">Selling Price</th>
-            </tr>
-        </table>
+        <div class="table-container">
+            <table id="dataTable" style="display: none;">
+                <thead>
+                    <tr>
+                        <th onclick="sortTable(0)">S. No.</th>
+                        <th onclick="sortTable(1)">Product Name</th>
+                        <th onclick="sortTable(2)">Product Price</th>
+                        <th onclick="sortTable(3)">Selling Price</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
     </div>
     <script>
         function fetchData() {
-            document.getElementById('loader').style.display = 'flex';
+            document.getElementById('loader-container').style.display = 'flex';
             document.getElementById('dataTable').style.display = 'none';
 
             fetch('https://script.google.com/macros/s/AKfycbzkuphhnOxb9ixtgw6QEi6pSpz7zi3n6lEqv2rgJdHvsf0KwComZm6SY3zTtpHSqhJTRQ/exec', {
@@ -86,23 +120,25 @@
             })
             .then(response => response.json())
             .then(data => {
-                const table = document.getElementById('dataTable');
-                data.forEach(row => {
+                const tableBody = document.querySelector('#dataTable tbody');
+                tableBody.innerHTML = ''; // Clear existing rows
+                data.forEach((row, index) => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
+                        <td>${index + 1}</td>
                         <td>${row[0]}</td>
                         <td>${row[1]}</td>
                         <td>${row[2]}</td>
                     `;
-                    table.appendChild(tr);
+                    tableBody.appendChild(tr);
                 });
-                sortTable(0); // Sort by product name initially
-                document.getElementById('loader').style.display = 'none';
+                sortTable(1); // Sort by product name initially
+                document.getElementById('loader-container').style.display = 'none';
                 document.getElementById('dataTable').style.display = 'table';
             })
             .catch(error => {
                 console.error('Error:', error);
-                document.getElementById('loader').style.display = 'none';
+                document.getElementById('loader-container').style.display = 'none';
             });
         }
 
@@ -118,15 +154,29 @@
                     shouldSwitch = false;
                     x = rows[i].getElementsByTagName("TD")[n];
                     y = rows[i + 1].getElementsByTagName("TD")[n];
-                    if (dir == "asc") {
-                        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
-                            shouldSwitch = true;
-                            break;
+                    if (n === 0) { // For S. No. column, compare as numbers
+                        if (dir == "asc") {
+                            if (Number(x.innerHTML) > Number(y.innerHTML)) {
+                                shouldSwitch = true;
+                                break;
+                            }
+                        } else if (dir == "desc") {
+                            if (Number(x.innerHTML) < Number(y.innerHTML)) {
+                                shouldSwitch = true;
+                                break;
+                            }
                         }
-                    } else if (dir == "desc") {
-                        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
-                            shouldSwitch = true;
-                            break;
+                    } else { // For other columns, compare as strings
+                        if (dir == "asc") {
+                            if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                                shouldSwitch = true;
+                                break;
+                            }
+                        } else if (dir == "desc") {
+                            if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                                shouldSwitch = true;
+                                break;
+                            }
                         }
                     }
                 }
@@ -141,6 +191,15 @@
                     }
                 }
             }
+            // Update S. No. after sorting
+            updateSerialNumbers();
+        }
+
+        function updateSerialNumbers() {
+            const rows = document.querySelectorAll('#dataTable tbody tr');
+            rows.forEach((row, index) => {
+                row.cells[0].textContent = index + 1;
+            });
         }
 
         window.onload = fetchData;
